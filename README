@@ -2,8 +2,6 @@ Steps:
 
 1) Clone the repo
 
-2) Open in vscode, download Live Server extension
-
-3) Right click index.html, click "Open with Live server"
+2) Open folder, right click index.html, and open with any Chromium browser, e.g. Chrome
 
 Note: Doesn't show graph if depth >=5 due to size constraints
