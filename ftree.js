@@ -3,6 +3,9 @@ $(document).ready(docMain);
 var conf = new Object();
 conf['depth'] = 3;
 conf['width'] = 8;
+conf['oversubRatio'] = 2;        // 1 = full bisection, 2 = 2:1, etc.
+conf['gpuRackRatio'] = 0.3;      // fraction of racks GPU-heavy
+conf['gpuTrafficMultiplier'] = 3; // traffic multiplier for GPU racks
 
 var controlVisible = true;
 
@@ -14,13 +17,8 @@ function docMain() {
 
 function kpress(e) {
     if (e.which == 104) { // 'h'
-        if (controlVisible) {
-            controlVisible = false;
-            $("div.control").hide();
-        } else {
-            controlVisible = true;
-            $("div.control").show();
-        }
+        controlVisible = !controlVisible;
+        $("div.control").toggle();
     }
 }
 
@@ -60,10 +58,8 @@ function drawFatTree(depth, width) {
 
     function podPositions(d) {
         var ret = [];
-
         var ngroup = kexp(d);
         var pergroup = kexp(depth - 1 - d);
-
         var wgroup = pergroup * padg;
         var wgroups = wgroup * (ngroup - 1);
         var offset = -wgroups/2;
@@ -71,18 +67,15 @@ function drawFatTree(depth, width) {
         for (var i = 0; i < ngroup; i++) {
             var wpods = pergroup * padi;
             var goffset = wgroup * i - wpods/2;
-            
             for (var j = 0; j < pergroup; j++) {
                 ret.push(offset + goffset + padi * j);
             }
         }
 
-        return ret
+        return ret;
     }
 
-    for (var i = 0; i < depth; i++) {
-        linePositions[i] = podPositions(i);
-    }
+    for (var i = 0; i < depth; i++) linePositions[i] = podPositions(i);
 
     function drawPods(list, y) {
         for (var j = 0, n = list.length; j < n; j++) {
@@ -128,13 +121,12 @@ function drawFatTree(depth, width) {
             }
         }
     }
-    
+
     function linePods(d, list1, list2, y1, y2) {
         var pergroup = kexp(depth - 1 - d);
         var ngroup = kexp(d);
-
         var perbundle = pergroup / k;
-        
+
         for (var i = 0; i < ngroup; i++) {
             var offset = pergroup * i;
             for (var j = 0; j < k; j++) {
@@ -171,20 +163,18 @@ function drawFatTree(depth, width) {
             drawPods(linePositions[i], -i * hline);
         }
     }
+
+    updateStat();
 }
 
 function updateStat() {
     var w = Math.floor(conf['width'] / 2);
     var d = conf['depth'];
     if (d == 0 || w == 0) {
-        d3.select("#nhost").html("&nbsp;");
-        d3.select("#nswitch").html("&nbsp;");
-        d3.select("#ncable").html("&nbsp;");
-        d3.select("#ntx").html("&nbsp;");
-        d3.select("#nswtx").html("&nbsp;");
+        ["nhost","nswitch","ncable","ntx","nswtx","minpaths","effbw","aistress"].forEach(id => d3.select("#"+id).html("&nbsp;"));
         return;
     }
-    
+
     var line = Math.pow(w, d - 1);
 
     var nhost = 2 * line * w;
@@ -193,11 +183,20 @@ function updateStat() {
     var ntx = 2 * (2 * d) * w * line;
     var nswtx = ntx - nhost;
 
+    // === Extra AI / Oversub metrics ===
+    var minimalPaths = Math.pow(w, 2);
+    var effectiveBW = nswtx / conf['oversubRatio'];
+    var avgBWPerHost = effectiveBW / nhost;
+    var congestionIndex = (conf['gpuRackRatio'] * conf['gpuTrafficMultiplier']) / avgBWPerHost;
+
     d3.select("#nhost").html(formatNum(nhost));
     d3.select("#nswitch").html(formatNum(nswitch));
     d3.select("#ncable").html(formatNum(ncable));
     d3.select("#ntx").html(formatNum(ntx));
     d3.select("#nswtx").html(formatNum(nswtx));
+    d3.select("#minpaths").html(formatNum(minimalPaths));
+    d3.select("#effbw").html(formatNum(Math.floor(effectiveBW)));
+    d3.select("#aistress").html(congestionIndex.toFixed(4));
 }
 
 function formatNum(x) {
@@ -212,7 +211,7 @@ function formInit() {
     var form = d3.select("form");
 
     function confInt() { 
-        conf[this.name] = parseInt(this.value); 
+        conf[this.name] = parseFloat(this.value); 
         updateStat();
         redraw();
     }
@@ -223,7 +222,5 @@ function formInit() {
         fields.each(func);
     }
 
-    hook("depth", confInt);
-    hook("width", confInt);
+    ["depth","width","oversubRatio","gpuRackRatio","gpuTrafficMultiplier"].forEach(name => hook(name, confInt));
 }
-

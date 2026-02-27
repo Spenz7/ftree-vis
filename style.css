@@ -12,45 +12,54 @@ svg.main { display: block; margin: auto; z-index: -1; }
 
 div.control {
     position: absolute;
-    right: .1in;
-    left: .1in;
-    width: 2in;
-    padding-top: .1in;
-    padding-bottom: .1in;
-    padding-left: .15in;
-    margin-right: .1in;
+    top: 10px;
+    left: 10px;
+    width: 250px;
+    padding: 10px;
     background: #eee;
-    font-size: .13in;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 form ul {
-    list-style-type:none;
-    margin: .1in;
+    list-style-type: none;
+    margin: 0;
     padding: 0;
 }
 
 form ul li {
-    margin-left: 1in;
-    padding-bottom: .01in;
-    line-height: .23in;
-}
-
-form input[type="text"] {
-    width: .3in;
-    border: 1px solid #ccc;
-    font-size: .13in;
+    margin-bottom: 8px; /* space between items */
+    overflow: hidden; /* clear floats */
 }
 
 form span.f {
-    margin-left: -1.1in;
-    width: 1in;
+    display: inline-block;
+    width: 140px;
+    font-weight: bold;
     text-align: right;
-    padding-right: .05in;
+    margin-right: 8px;
     float: left;
+}
+
+form input[type="text"] {
+    width: 60px;
+    border: 1px solid #ccc;
+    padding: 2px 4px;
+    font-size: 14px;
+}
+
+form span {
+    display: inline-block;
 }
 
 a { text-decoration: none; }
 a:hover { text-decoration: underline; }
-div.comment { color: #666; text-align: center; margin-right: .1in; }
-div.comment a { color: #66c; }
 
+div.comment {
+    color: #666;
+    text-align: center;
+    margin-top: 10px;
+}
+
+div.comment a { color: #66c; }
