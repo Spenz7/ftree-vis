@@ -1,1 +1,9 @@
-A fat tree visualizer in Javascript.
+Steps:
+
+1) Clone the repo
+
+2) Open in vscode, download Live Server extension
+
+3) Right click index.html, click "Open with Live server"
+
+Note: Doesn't show graph if depth >=5 due to size constraints
